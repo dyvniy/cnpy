@@ -2,6 +2,8 @@
 //Released under MIT License
 //license available in LICENSE file, or at http://www.opensource.org/licenses/mit-license.php
 
+#pragma warning (disable:4996)
+
 #ifndef LIBCNPY_H_
 #define LIBCNPY_H_
 
