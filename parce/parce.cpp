@@ -29,7 +29,15 @@ using namespace std;
 //	return out;
 //}
 
-size_t split(const std::string& txt, std::vector<std::string>& strs, char ch)
+std::string trunc(const std::string& s) {
+	std::string s2;
+	for (char ch : s) {
+		if (ch != ' ') { s2 += ch; }
+	}
+	return s2;
+}
+
+size_t split(const std::string& txt, std::vector<std::string>& strs, char ch, bool truncated = true)
 {
 	size_t pos = txt.find(ch);
 	size_t initialPos = 0;
@@ -44,7 +52,7 @@ size_t split(const std::string& txt, std::vector<std::string>& strs, char ch)
 	}
 
 	// Add the last one
-	strs.push_back(txt.substr(initialPos, fmin(pos, txt.size()) - initialPos + 1));
+	strs.push_back((txt.substr(initialPos, fmin(pos, txt.size()) - initialPos + 1)));
 
 	return strs.size();
 }
@@ -172,8 +180,14 @@ vector<unordered_map<string, Int>> loadVarios() {
 	}
 	for (auto m : varios) {
 		cout << m.size() << " ";
+		if (m.size() < 5) {
+			for (auto p : m) {
+				cout << "{" << p.first << ", " << p.second << "} ";
+			}
+		}
 	}
 	cout << endl;
+	varios.pop_back();
 	return varios;
 }
 
@@ -254,13 +268,18 @@ int csvToNumpy(wstring inFile, vector<unordered_map<string, Int>>& numbers,
 				}
 			}
 			else {
-				int bn = bytesNeed[j];
+				//int bn = bytesNeed[j];
 				unordered_map<string, Int>& map = numbers[j];
-				line.push_back(map[w]*1.0f/map.size());
+				float rez1 = map[w];
+				float rez2 = rez1 * 1.0f;
+				float rez = rez2 / map.size();
+				line.push_back(rez);
 			}
 			j++;
 		}
-		linei.push_back(*(line.end() - 1));
+		//line.pop_back(); // 0
+		float nz = line.back() * 3;
+		linei.push_back(nz);
 		line.pop_back();
 		//save it to file
 		if (line.size() < 2) { // wrong lines
@@ -308,11 +327,13 @@ int main()
 		}
 		numbers.push_back(num);
 	}
-	ofstream ofs("../../mapsN.txt");
-	saveMaps(ofs, numbers);
+	//ofstream ofs("../../mapsN.txt");
+	//saveMaps(ofs, numbers);
+
+	numbers.back()["1"] = 1;
 
 	//csvToBytes(L"../../train.csv", numbers, bytesNeed, L"../../train2.bin");
-	csvToNumpy(L"../../train.csv", numbers, bytesNeed, "../../train6");// , 100000);
+	csvToNumpy(L"../../train.csv", numbers, bytesNeed, "../../train1");// , 100000);
 
 	cout << endl << sum;
 	//fillVarios(varios);
