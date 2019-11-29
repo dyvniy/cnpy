@@ -18,7 +18,7 @@
     <ClCompile Include="parce.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\cnpy.cpp">
+    <ClCompile Include="..\npy\cnpy.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -26,7 +26,7 @@
     <ClInclude Include="data.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\cnpy.h">
+    <ClInclude Include="..\npy\cnpy.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

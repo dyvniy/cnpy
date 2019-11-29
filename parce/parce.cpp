@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 #include "data.h"
-#include "../cnpy.h"
+#include "../npy/cnpy.h"
 
 using namespace std;
 
@@ -222,50 +222,63 @@ int csvToBytes(wstring inFile, vector<unordered_map<string, Int>>& numbers, vect
 	return 0;
 }
 
-int csvToNumpy(wstring inFile, vector<unordered_map<string, Int>>& numbers, vector<int> bytesNeed, string outFile) {
+int csvToNumpy(wstring inFile, vector<unordered_map<string, Int>>& numbers, 
+	vector<int> bytesNeed, 
+	string outFile, int maxCount = INT_MAX) 
+{
+	if (bytesNeed.size() == 0) {
+		printf("need more bytes\n");
+		return -1;
+	}
 	ifstream ifs(inFile);
 	//ofstream ofs(outFile);
 	string s(" ");
 	if (!ifs.is_open()) {
 		return -1;
 	}
-	int i = 0;
+	size_t i = 0;
 	getline(ifs, s); // head
-	while (!ifs.eof() && s.size() > 0) {
+	//vector<vector<float>> batch;
+	//vector<vector<float>> batchi;
+	vector<float> line;
+	vector<float> linei;
+	while (!ifs.eof() && s.size() > 0 && i < maxCount) {
 		getline(ifs, s);
 		vector<string> spl;
 		split(s, spl, ',');
 		int j = -1;
-		vector<char> line;
 		for (string w : spl) {
 			if (j == -1) {
-				//line += w; // code
+				for (char ch : w) {
+					line.push_back(ch/256.0); // code
+				}
 			}
 			else {
 				int bn = bytesNeed[j];
 				unordered_map<string, Int>& map = numbers[j];
-				int nb = map[w];
-				line.push_back(char(nb % 256));
-				if (bn > 1) {
-					line.push_back(char(int(nb / 256) % 256));
-				}
-				if (bn > 2) {
-					line.push_back(char(int(nb / 256 / 256) % 256));
-				}
+				line.push_back(map[w]*1.0f/map.size());
 			}
 			j++;
 		}
+		linei.push_back(*(line.end() - 1));
+		line.pop_back();
 		//save it to file
-		if (line.size() < 2) {
+		if (line.size() < 2) { // wrong lines
 			continue;
 		}
-		cnpy::npy_save(outFile + ".npy", &line[0], { 1, line.size() - 1 }, "a");
-		cnpy::npy_save(outFile + "_i.npy", &line[line.size() - 1], { 1 }, "a");
+		//batch.push_back(line);
+		//batchi.push_back(linei);
 		i++;
 		if (i % 1000000 == 0) {
 			cout << i << " " << s.size() << " ";
+			cnpy::npy_save(outFile + ".npy", &line[0], { 1000000, 113 }, "a");
+			cnpy::npy_save(outFile + "_i.npy", &linei[0], { 1000000 }, "a");
+			line = vector<float>();
+			linei = vector<float>();
 		}
 	}
+	cnpy::npy_save(outFile + "_test.npy", &line[0], { i%1000000, 113 }, "a");
+	cnpy::npy_save(outFile + "_i_test.npy", &linei[0], { i%1000000 }, "a");
 	cout << endl << i << endl;
 	return 0;
 }
@@ -275,6 +288,9 @@ int main()
 {
     std::cout << "Hello World!\n";
 	vector<unordered_map<string, Int>> varios = loadVarios();
+	if (varios.size() == 0) {
+		fillVarios(varios);
+	}
 	vector<unordered_map<string, Int>> numbers;
 	vector<int> bytesNeed;
 	int sum = 0;
@@ -292,11 +308,11 @@ int main()
 		}
 		numbers.push_back(num);
 	}
-	//ofstream ofs("../../mapsN.txt");
-	//saveMaps(ofs, numbers);
+	ofstream ofs("../../mapsN.txt");
+	saveMaps(ofs, numbers);
 
 	//csvToBytes(L"../../train.csv", numbers, bytesNeed, L"../../train2.bin");
-	//csvToNumpy(L"../../train.csv", numbers, bytesNeed, "../../train4");
+	csvToNumpy(L"../../train.csv", numbers, bytesNeed, "../../train6");// , 100000);
 
 	cout << endl << sum;
 	//fillVarios(varios);
